@@ -33,6 +33,7 @@ jobs:
         run: |
           tag=${GITHUB_REF#refs/tags/}
           tag=${tag#refs/heads/}
+          echo "::set-output name=foldername::rttrUtils_$tag"
           echo "::set-output name=filename::rttrUtils-${{runner.os}}-${tag}.tar.gz"
 
       - uses: actions/checkout@v2
@@ -60,12 +61,7 @@ jobs:
           key: ${{matrix.os}}-${{matrix.compiler}}-ccache
       - name: Setup CCache
         if: "!startsWith(runner.os, 'Windows')"
-        run: |
-          echo "CCACHE_BASEDIR=$PWD" >> $GITHUB_ENV
-          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
-          echo "CCACHE_COMPRESS=true" >> $GITHUB_ENV
-          echo "CCACHE_COMPRESSLEVEL=6" >> $GITHUB_ENV
-          echo "CCACHE_MAXSIZE=400M" >> $GITHUB_ENV
+        run: run: tools/ci/setupCCache.sh
         
       - name: Install Compiler
         if: "startsWith(runner.os, 'Linux')"
@@ -98,7 +94,10 @@ jobs:
         run: tools/ci/build.sh "Release" "${ADDITIONAL_CMAKE_FLAGS}"
 
       - name: Package
-        run: (cd build/installed && tar -zcf "../${{steps.filenames.outputs.filename}}" *)
+        run: |
+          mv installed ${{steps.filenames.outputs.foldername}}
+          tar -zcf "../${{steps.filenames.outputs.filename}}" foldername
+        working-directory: build
 
       - name: Create Release
         if: success()

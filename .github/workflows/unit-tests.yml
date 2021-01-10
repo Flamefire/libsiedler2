@@ -17,10 +17,10 @@ jobs:
       matrix:
         include:
           - { compiler: gcc-6,    os: ubuntu-16.04, buildType: Release }
-          - { compiler: gcc-6,    os: ubuntu-16.04, buildType: Debug }
+          - { compiler: gcc-6,    os: ubuntu-16.04, buildType: Debug, coverage: true }
           - { compiler: clang ,   os: macos-10.15,  buildType: Debug, boostVersion: 1.74.0 } # Multiple bugs with recent OSX until 1.74
           # Latest GCC
-          - { compiler: gcc-10,   os: ubuntu-18.04, buildType: Debug, coverage: true }
+          - { compiler: gcc-10,   os: ubuntu-18.04, buildType: Debug }
           # Latest Clang 
           - { compiler: clang-10, os: ubuntu-18.04, buildType: Debug }
           # Windows
@@ -63,12 +63,7 @@ jobs:
           key: ${{matrix.os}}-${{matrix.compiler}}-ccache
       - name: Setup CCache
         if: "!startsWith(runner.os, 'Windows')"
-        run: |
-          echo "CCACHE_BASEDIR=$PWD" >> $GITHUB_ENV
-          echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
-          echo "CCACHE_COMPRESS=true" >> $GITHUB_ENV
-          echo "CCACHE_COMPRESSLEVEL=6" >> $GITHUB_ENV
-          echo "CCACHE_MAXSIZE=400M" >> $GITHUB_ENV
+        run: tools/ci/setupCCache.sh
 
       - name: Install Compiler
         if: "startsWith(runner.os, 'Linux')"
@@ -78,21 +73,7 @@ jobs:
           sudo apt install $pkgs
       - name: Setup compiler
         if: "!startsWith(runner.os, 'Windows')"
-        run: |
-          CC="${{matrix.compiler}}"
-          if [[ "$CC" =~ clang ]]; then
-            CXX=${CC/clang/clang++}
-          elif [[ "$CC" =~ gcc ]]; then
-            CXX=${CC/gcc/g++}
-          fi
-          ver=7 # default
-          if [[ "$CC" =~ gcc- ]]; then
-            ver="${CC##*gcc-}"
-          fi
-          GCOV=gcov-${ver}
-          echo "CC=$CC" >> $GITHUB_ENV
-          echo "CXX=$CXX" >> $GITHUB_ENV
-          echo "GCOV=$GCOV" >> $GITHUB_ENV
+        run: tools/ci/setupCompiler.sh
 
       - name: Install system packages (Linux)
         if: "startsWith(runner.os, 'Linux')"
