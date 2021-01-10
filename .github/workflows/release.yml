@@ -29,10 +29,11 @@ jobs:
           echo "TRAVIS_OS_NAME=${{matrix.os}}" >> $GITHUB_ENV
           echo "BOOST_ROOT=$BOOST_ROOT_1_72_0" >> $GITHUB_ENV # Windows only
       - name: Extract tag name
-        id: get_tag
+        id: filenames
         run: |
-          echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
-          echo "::set-output name=filename::rttrUtils-${{runner.os}}-${GITHUB_REF#refs/tags/}.tar.gz"
+          tag=${GITHUB_REF#refs/tags/}
+          tag=${tag#refs/heads/}
+          echo "::set-output name=filename::rttrUtils-${{runner.os}}-${tag}.tar.gz"
 
       - uses: actions/checkout@v2
       - uses: actions/checkout@v2
@@ -74,21 +75,9 @@ jobs:
           sudo apt install $pkgs
       - name: Setup compiler
         if: "!startsWith(runner.os, 'Windows')"
-        run: |
-          CC="${{matrix.compiler}}"
-          if [[ "$CC" =~ clang ]]; then
-            CXX=${CC/clang/clang++}
-          elif [[ "$CC" =~ gcc ]]; then
-            CXX=${CC/gcc/g++}
-          fi
-          ver=7 # default
-          if [[ "$CC" =~ gcc- ]]; then
-            ver="${CC##*gcc-}"
-          fi
-          GCOV=gcov-${ver}
-          echo "CC=$CC" >> $GITHUB_ENV
-          echo "CXX=$CXX" >> $GITHUB_ENV
-          echo "GCOV=$GCOV" >> $GITHUB_ENV
+        run: tools/ci/setupCompiler.sh
+        env:
+          COMPILER: matrix.compiler
 
       - name: Install system packages (Linux)
         if: "startsWith(runner.os, 'Linux')"
@@ -109,7 +98,7 @@ jobs:
         run: tools/ci/build.sh "Release" "${ADDITIONAL_CMAKE_FLAGS}"
 
       - name: Package
-        run: (cd build/installed && tar -zcf "../${{steps.get_tag.outputs.filename}}" *)
+        run: (cd build/installed && tar -zcf "../${{steps.filenames.outputs.filename}}" *)
 
       - name: Create Release
         if: success()
@@ -131,6 +120,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/${{steps.get_tag.outputs.filename}}
-          asset_name: ${{steps.get_tag.outputs.filename}}
+          asset_path: build/${{steps.filenames.outputs.filename}}
+          asset_name: ${{steps.filenames.outputs.filename}}
           asset_content_type: application/tar.gz

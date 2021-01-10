@@ -15,8 +15,7 @@ if [[ "$TRAVIS_OS_NAME" =~ windows ]]; then
     BUILD_FLAGS=""
 else
     GENERATOR="Unix Makefiles"
-    # Travis uses 2 cores
-    BUILD_FLAGS="-j2"
+    BUILD_FLAGS="-j3
 fi
 
 cmake \
