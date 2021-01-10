@@ -15,7 +15,7 @@ if [[ "$TRAVIS_OS_NAME" =~ windows ]]; then
     BUILD_FLAGS=""
 else
     GENERATOR="Unix Makefiles"
-    BUILD_FLAGS="-j3
+    BUILD_FLAGS="-j3"
 fi
 
 cmake \

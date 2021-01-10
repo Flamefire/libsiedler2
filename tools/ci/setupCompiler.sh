@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-$CC="$COMPILER"
+CC="$COMPILER"
 
 if [[ "$CC" =~ clang ]]; then
   CXX=${CC/clang/clang++}
