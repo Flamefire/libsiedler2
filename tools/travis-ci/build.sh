@@ -10,8 +10,8 @@ CMAKE_FLAGS="${2}"
 
 mkdir build && cd build
 
-if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then
-    GENERATOR="Visual Studio 15 2017 Win64"
+if [[ "$TRAVIS_OS_NAME" =~ windows ]]; then
+    GENERATOR="Visual Studio 16 2019"
     BUILD_FLAGS=""
 else
     GENERATOR="Unix Makefiles"

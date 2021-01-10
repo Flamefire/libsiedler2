@@ -14,13 +14,13 @@ jobs:
         include:
           - { compiler: gcc-6,    os: ubuntu-16.04, buildType: Release }
           - { compiler: gcc-6,    os: ubuntu-16.04, buildType: Debug, coverage: true }
-          - { compiler: clang  ,  os: macos-10.15,  buildType: Debug, boostVersion: 1.74.0 } # Multiple bugs with recent OSX until 1.74
+          - { compiler: clang ,   os: macos-10.15,  buildType: Debug, boostVersion: 1.74.0 } # Multiple bugs with recent OSX until 1.74
           # Latest GCC
           - { compiler: gcc-10,   os: ubuntu-18.04, buildType: Debug }
-          - { compiler: gcc-10,   os: ubuntu-18.04, buildType: Release }
           # Latest Clang 
           - { compiler: clang-10, os: ubuntu-18.04, buildType: Debug }
-          - { compiler: clang-10, os: ubuntu-18.04, buildType: Release }
+          # Windows
+          - { compiler: msvc,      os: windows-2019, buildType: Debug, boostVersion: 1.72.0 }
 
     runs-on: ${{matrix.os}}
 
@@ -29,6 +29,7 @@ jobs:
           echo "DEPS_DIR=${{runner.temp}}/.cache" >> $GITHUB_ENV
           echo "LIBUTIL_DIR=$GITHUB_WORKSPACE/external/libutil" >> $GITHUB_ENV
           echo "LIBENDIAN_DIR=$GITHUB_WORKSPACE/external/libendian" >> $GITHUB_ENV
+          echo "TRAVIS_OS_NAME=${{matrix.os}}" >> $GITHUB_ENV
       - run: echo "BOOST_VERSION=${{matrix.boostVersion}}" >> $GITHUB_ENV
         if: matrix.boostVersion
 
@@ -44,16 +45,19 @@ jobs:
           ref: master
           path: external/libendian
       - name: Cache dependencies
+        if: "!startsWith(runner.os, 'windows')"
         uses: actions/cache@v2
         with:
           path: ${{env.DEPS_DIR}}
           key: ${{matrix.os}}-${{env.BOOST_VERSION}}
       - name: Cache CCache
+        if: "!startsWith(runner.os, 'windows')"
         uses: actions/cache@v2
         with:
           path: .ccache
           key: ${{matrix.os}}-${{matrix.compiler}}-ccache
       - name: Setup CCache
+        if: "!startsWith(runner.os, 'windows')"
         run: |
           echo "CCACHE_BASEDIR=$PWD" >> $GITHUB_ENV
           echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
@@ -68,6 +72,7 @@ jobs:
           pkgs=${pkgs/gcc-/g++-}
           sudo apt install $pkgs
       - name: Setup compiler
+        if: "!startsWith(runner.os, 'windows')"
         run: |
             CC=${{matrix.compiler}}
             if [[ "$CC" =~ clang ]]; then
@@ -92,6 +97,7 @@ jobs:
         run: brew install ccache cmake boost miniupnpc
 
       - name: Install Boost
+        if: "!startsWith(runner.os, 'windows')"
         run: |
           BOOST_ROOT="${DEPS_DIR}/boost${BOOST_VERSION}"
           echo "BOOST_ROOT=${BOOST_ROOT}" >> $GITHUB_ENV
