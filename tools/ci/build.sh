@@ -30,4 +30,4 @@ cmake --build . --target install --config "${BUILD_TYPE}" -- $BUILD_FLAGS
 
 # Execute tests
 export RTTR_DISABLE_ASSERT_BREAKPOINT=1
-ctest --build-config "${BUILD_TYPE}" --output-on-failure -j2
+ctest --build-config "${BUILD_TYPE}" --output-on-failure -j2 || ./Test_libsiedler2 
