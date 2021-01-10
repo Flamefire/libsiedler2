@@ -61,7 +61,7 @@ jobs:
           key: ${{matrix.os}}-${{matrix.compiler}}-ccache
       - name: Setup CCache
         if: "!startsWith(runner.os, 'Windows')"
-        run: run: tools/ci/setupCCache.sh
+        run: tools/ci/setupCCache.sh
         
       - name: Install Compiler
         if: "startsWith(runner.os, 'Linux')"
