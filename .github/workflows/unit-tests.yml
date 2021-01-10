@@ -7,6 +7,10 @@ on:
 env:
   BOOST_VERSION: 1.65.1
 
+defaults:
+  run:
+    shell: bash
+
 jobs:
   UnitTests:
     strategy:
@@ -45,19 +49,19 @@ jobs:
           ref: master
           path: external/libendian
       - name: Cache dependencies
-        if: "!startsWith(runner.os, 'windows')"
+        if: "!startsWith(runner.os, 'Windows')"
         uses: actions/cache@v2
         with:
           path: ${{env.DEPS_DIR}}
           key: ${{matrix.os}}-${{env.BOOST_VERSION}}
       - name: Cache CCache
-        if: "!startsWith(runner.os, 'windows')"
+        if: "!startsWith(runner.os, 'Windows')"
         uses: actions/cache@v2
         with:
           path: .ccache
           key: ${{matrix.os}}-${{matrix.compiler}}-ccache
       - name: Setup CCache
-        if: "!startsWith(runner.os, 'windows')"
+        if: "!startsWith(runner.os, 'Windows')"
         run: |
           echo "CCACHE_BASEDIR=$PWD" >> $GITHUB_ENV
           echo "CCACHE_DIR=$PWD/.ccache" >> $GITHUB_ENV
@@ -66,13 +70,13 @@ jobs:
           echo "CCACHE_MAXSIZE=400M" >> $GITHUB_ENV
 
       - name: Install Compiler
-        if: "startsWith(runner.os, 'ubuntu')"
+        if: "startsWith(runner.os, 'Linux')"
         run: |
           pkgs=${{matrix.compiler}}
           pkgs=${pkgs/gcc-/g++-}
           sudo apt install $pkgs
       - name: Setup compiler
-        if: "!startsWith(runner.os, 'windows')"
+        if: "!startsWith(runner.os, 'Windows')"
         run: |
             CC=${{matrix.compiler}}
             if [[ "$CC" =~ clang ]]; then
@@ -90,14 +94,14 @@ jobs:
             echo "GCOV=$GCOV" >> $GITHUB_ENV
 
       - name: Install system packages (Linux)
-        if: "startsWith(runner.os, 'ubuntu')"
+        if: "startsWith(runner.os, 'Linux')"
         run: sudo apt install cmake cmake-data ccache libminiupnpc-dev
       - name: Install system packages (OSX)
-        if: startsWith(runner.os, 'macos')
+        if: startsWith(runner.os, 'macOS')
         run: brew install ccache cmake boost miniupnpc
 
       - name: Install Boost
-        if: "!startsWith(runner.os, 'windows')"
+        if: "!startsWith(runner.os, 'Windows')"
         run: |
           BOOST_ROOT="${DEPS_DIR}/boost${BOOST_VERSION}"
           echo "BOOST_ROOT=${BOOST_ROOT}" >> $GITHUB_ENV
