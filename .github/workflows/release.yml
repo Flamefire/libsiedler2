@@ -77,7 +77,7 @@ jobs:
         if: "!startsWith(runner.os, 'Windows')"
         run: tools/ci/setupCompiler.sh
         env:
-          COMPILER: matrix.compiler
+          COMPILER: ${{matrix.compiler}}
 
       - name: Install system packages (Linux)
         if: "startsWith(runner.os, 'Linux')"
