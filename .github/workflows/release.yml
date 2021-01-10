@@ -70,7 +70,7 @@ jobs:
       - name: Setup compiler
         if: "!startsWith(runner.os, 'Windows')"
         run: |
-          $CC="${{matrix.compiler}}"
+          CC="${{matrix.compiler}}"
           if [[ "$CC" =~ clang ]]; then
             CXX=${CC/clang/clang++}
           elif [[ "$CC" =~ gcc ]]; then
