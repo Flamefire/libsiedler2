@@ -107,7 +107,7 @@ jobs:
         working-directory: build
 
       - name: Check asset
-         run: ls build/${{steps.filenames.outputs.filename}} # Just check that uploading would work (asset_path exists)
+        run: ls build/${{steps.filenames.outputs.filename}} # Just check that uploading would work (asset_path exists)
       - name: Upload
         if: success() && github.event_name == 'release'
         uses: actions/upload-release-asset@v1.0.1
