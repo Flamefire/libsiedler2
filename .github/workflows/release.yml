@@ -96,7 +96,7 @@ jobs:
       - name: Package
         run: |
           mv installed ${{steps.filenames.outputs.foldername}}
-          tar -zcf "../${{steps.filenames.outputs.filename}}" foldername
+          tar -zcf "../${{steps.filenames.outputs.filename}}" ${{steps.filenames.outputs.foldername}}
         working-directory: build
 
       - name: Create Release
