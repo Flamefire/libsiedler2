@@ -16,8 +16,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { compiler: gcc-10,   os: ubuntu-18.04,  buildType: Release }
-          - { compiler: msvc,     os: windows-2019, buildType: Release }
+          - { compiler: gcc-10,   os: ubuntu-18.04 }
+          - { compiler: msvc,     os: windows-2019 }
 
     runs-on: ${{matrix.os}}
 
@@ -28,6 +28,11 @@ jobs:
           echo "LIBENDIAN_DIR=$GITHUB_WORKSPACE/external/libendian" >> $GITHUB_ENV
           echo "TRAVIS_OS_NAME=${{matrix.os}}" >> $GITHUB_ENV
           echo "BOOST_ROOT=$BOOST_ROOT_1_72_0" >> $GITHUB_ENV # Windows only
+      - name: Extract tag name
+        id: get_tag
+        run: |
+          echo "::set-output name=tag::${GITHUB_REF#refs/tags/}"
+          echo "::set-output name=filename::rttrUtils-${{runner.os}}-${GITHUB_REF#refs/tags/}.tar.gz"
 
       - uses: actions/checkout@v2
       - uses: actions/checkout@v2
@@ -101,4 +106,31 @@ jobs:
           $LIBUTIL_DIR/tools/ci/installBoost.sh "${BOOST_VERSION}" "${BOOST_ROOT}" "filesystem,system,program_options,thread,test,locale,iostreams,regex"
 
       - name: Build
-        run: tools/travis-ci/build.sh "${{matrix.buildType}}" "${ADDITIONAL_CMAKE_FLAGS}"
+        run: tools/ci/build.sh "Release" "${ADDITIONAL_CMAKE_FLAGS}"
+
+      - name: Package
+        run: (cd build/installed && tar -zcf "../${{steps.get_tag.outputs.filename}}" *)
+
+      - name: Create Release
+        if: success()
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Settlers 2 Tools ${{ github.ref }}
+          body: |
+            Return To The Roots (Settlers II(R) Clone) - Tools for working with the S2 file formats.
+          draft: true
+          prerelease: false
+      - name: Upload
+        if: success()
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/${{steps.get_tag.outputs.filename}}
+          asset_name: ${{steps.get_tag.outputs.filename}}
+          asset_content_type: application/tar.gz
